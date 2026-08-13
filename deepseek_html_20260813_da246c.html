@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>Sanco Calls – Premium</title>
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+    <style>
+        /* ----- RESET & BASE ----- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0b0f1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            color: #fff;
+            overflow: hidden;
+            background-image: radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.12), transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(123, 47, 247, 0.08), transparent 50%);
+        }
+
+        /* ----- APP CONTAINER ----- */
+        .app {
+            max-width: 440px;
+            width: 100%;
+            background: rgba(16, 24, 40, 0.75);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-radius: 56px;
+            padding: 28px 24px 32px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        .app::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -40%;
+            width: 180%;
+            height: 180%;
+            background: radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.06), transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(123, 47, 247, 0.04), transparent 50%);
+            pointer-events: none;
+        }
+
+        /* ----- HEADER ----- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #7ecfff, #5b7cfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: #7ecfff;
+            stroke-width: 2;
+        }
+        .status-badge {
+            font-size: 11px;
+            padding: 5px 16px;
+            border-radius: 40px;
+            background: rgba(255, 70, 70, 0.15);
+            border: 1px solid rgba(255, 70, 70, 0.2);
+            color: #ff6b6b;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .status-badge.online {
+            background: rgba(70, 255, 150, 0.12);
+            border-color: rgba(70, 255, 150, 0.25);
+            color: #5affa0;
+        }
+        .status-badge.connecting {
+            background: rgba(255, 200, 50, 0.12);
+            border-color: rgba(255, 200, 50, 0.2);
+            color: #ffd93d;
+        }
+        .status-badge.connected {
+            background: rgba(50, 200, 255, 0.15);
+            border-color: rgba(50, 200, 255, 0.25);
+            color: #5fcfff;
+        }
+
+        /* ----- ROLE TOGGLE ----- */
+        .role-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 40px;
+            padding: 4px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            position: relative;
+            z-index: 2;
+        }
+        .role-toggle button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 8px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #8899bb;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .role-toggle button svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .role-toggle button.active {
+            background: linear-gradient(135deg, #3b82f6, #7c3aed);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* ----- PANELS ----- */
+        .panel {
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 32px;
+            padding: 20px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 2;
+            transition: opacity 0.3s;
+        }
+        .panel-title {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1.4px;
+            color: #8899bb;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 14px 18px;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            min-width: 140px;
+            font-family: inherit;
+            transition: border 0.2s;
+        }
+        .input-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .input-group input::placeholder {
+            color: #556688;
+        }
+
+        /* ----- BUTTONS ----- */
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 54px;
+            touch-action: manipulation;
+            user-select: none;
+            flex: 1 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn:active {
+            transform: scale(0.94);
+        }
+        .btn.primary {
+            background: linear-gradient(135deg, #3b82f6, #7c3aed);
+            border-color: transparent;
+            box-shadow: 0 4px 24px rgba(59, 130, 246, 0.25);
+        }
+        .btn.primary:hover {
+            box-shadow: 0 6px 36px rgba(59, 130, 246, 0.35);
+        }
+        .btn.danger {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border-color: transparent;
+            box-shadow: 0 4px 24px rgba(239, 68, 68, 0.25);
+        }
+        .btn.success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-color: transparent;
+            box-shadow: 0 4px 24px rgba(34, 197, 94, 0.2);
+        }
+        .btn svg {
+            width: 22px;
+            height: 22px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* ----- CALL ID DISPLAY ----- */
+        .call-id-box {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 60px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 12px 0 14px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .call-id-box span {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            font-size: 18px;
+            color: #7ecfff;
+            letter-spacing: 0.5px;
+            word-break: break-all;
+        }
+        .call-id-box .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 40px;
+            padding: 6px 14px;
+            color: #aabccc;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .call-id-box .copy-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+        .call-id-box .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* ----- CALL SCREEN (immersive) ----- */
+        .call-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0 8px;
+            position: relative;
+            z-index: 2;
+            animation: fadeIn 0.4s ease;
+        }
+        .call-screen.active {
+            display: flex;
+        }
+        .call-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+            box-shadow: 0 12px 48px rgba(59, 130, 246, 0.3);
+            margin-bottom: 16px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .call-avatar .pulse-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            animation: pulse-wave 2s infinite ease-out;
+        }
+        .call-avatar .pulse-ring:nth-child(2) {
+            animation-delay: 0.7s;
+        }
+        @keyframes pulse-wave {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .call-timer {
+            font-size: 32px;
+            font-weight: 300;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 3px;
+            color: #c8d6e5;
+            margin: 4px 0 6px;
+        }
+        .call-sub {
+            font-size: 15px;
+            color: #8899bb;
+            margin-bottom: 8px;
+        }
+        .call-quality {
+            font-size: 13px;
+            padding: 4px 18px;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #5affa0;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .call-quality.poor {
+            color: #ff6b6b;
+            border-color: rgba(255, 70, 70, 0.2);
+        }
+        .call-quality.moderate {
+            color: #ffd93d;
+            border-color: rgba(255, 200, 50, 0.2);
+        }
+
+        .call-controls-big {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-top: 6px;
+        }
+        .call-controls-big .btn {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            padding: 0;
+            flex: 0 0 72px;
+            min-height: auto;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            justify-content: center;
+        }
+        .call-controls-big .btn svg {
+            width: 32px;
+            height: 32px;
+        }
+        .call-controls-big .btn.end-call {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border-color: transparent;
+            box-shadow: 0 4px 24px rgba(239, 68, 68, 0.3);
+        }
+        .call-controls-big .btn.mic-on {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-color: transparent;
+            box-shadow: 0 4px 24px rgba(34, 197, 94, 0.2);
+        }
+        .call-controls-big .btn.mic-off {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        .call-controls-big .btn.speaker-on {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.05);
+        }
+        .call-controls-big .btn.speaker-off {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ----- INCOMING CALL OVERLAY ----- */
+        .incoming-overlay {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 56px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            animation: fadeIn 0.35s ease;
+        }
+        .incoming-overlay.active {
+            display: flex;
+        }
+        .incoming-overlay .avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 38px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2);
+        }
+        .incoming-overlay .caller-id {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .incoming-overlay .sub {
+            font-size: 15px;
+            color: #8899bb;
+            margin-bottom: 28px;
+        }
+        .incoming-overlay .actions {
+            display: flex;
+            gap: 30px;
+        }
+        .incoming-overlay .actions button {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: none;
+            font-size: 0;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .incoming-overlay .actions button svg {
+            width: 32px;
+            height: 32px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 2;
+        }
+        .incoming-overlay .actions .accept {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 4px 24px rgba(34, 197, 94, 0.3);
+            border-color: transparent;
+        }
+        .incoming-overlay .actions .reject {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 4px 24px rgba(239, 68, 68, 0.3);
+            border-color: transparent;
+        }
+        .incoming-overlay .actions button:active {
+            transform: scale(0.92);
+        }
+
+        /* ----- TOAST ----- */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 12px 28px;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #e0e8f0;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            max-width: 90%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* ----- UTILITIES ----- */
+        .hidden {
+            display: none !important;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(0.96); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* RESPONSIVE TWEAKS */
+        @media (max-width: 420px) {
+            .app {
+                padding: 20px 16px 24px;
+                border-radius: 40px;
+            }
+            .call-avatar {
+                width: 90px;
+                height: 90px;
+                font-size: 36px;
+            }
+            .call-controls-big .btn {
+                width: 62px;
+                height: 62px;
+                flex: 0 0 62px;
+            }
+            .call-controls-big .btn svg {
+                width: 28px;
+                height: 28px;
+            }
+            .call-timer {
+                font-size: 26px;
+            }
+            .incoming-overlay .actions button {
+                width: 62px;
+                height: 62px;
+            }
+        }
+        @media (min-width: 768px) {
+            .app {
+                padding: 36px 32px 40px;
+                border-radius: 64px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <!-- APP -->
+    <div class="app" id="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                Sanco Calls
+            </div>
+            <div class="status-badge" id="statusBadge">● Ready</div>
+        </div>
+
+        <!-- Role Toggle -->
+        <div class="role-toggle" id="roleToggle">
+            <button class="active" data-role="caller">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Caller
+            </button>
+            <button data-role="receiver">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                Receiver
+            </button>
+        </div>
+
+        <!-- Caller Panel -->
+        <div id="callerPanel" class="panel">
+            <div class="panel-title">📤 Generate Call ID</div>
+            <button class="btn primary" id="generateIdBtn" style="width:100%;">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Generate Call ID
+            </button>
+            <div id="callerIdBox" class="call-id-box hidden">
+                <span id="generatedIdDisplay">—</span>
+                <button class="copy-btn" id="copyIdBtn">
+                    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy
+                </button>
+            </div>
+            <div id="callerStatus" style="margin-top:10px;font-size:14px;color:#8899bb;text-align:center;">Press generate to start</div>
+            <!-- Call controls (hidden until connected) -->
+            <div id="callerControls" class="hidden">
+                <!-- we'll move to call-screen -->
+            </div>
+        </div>
+
+        <!-- Receiver Panel -->
+        <div id="receiverPanel" class="panel hidden">
+            <div class="panel-title">📥 Enter Call ID</div>
+            <div class="input-group">
+                <input type="text" id="receiverInput" placeholder="Paste Call ID..." />
+                <button class="btn primary" id="connectBtn">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h13M12 5l7 7-7 7"/></svg>
+                    Connect
+                </button>
+            </div>
+            <div id="receiverStatus" style="font-size:14px;color:#8899bb;text-align:center;">Enter an ID and connect</div>
+        </div>
+
+        <!-- Call Screen (immersive, shown when in call) -->
+        <div id="callScreen" class="call-screen">
+            <div class="call-avatar" id="callAvatar">
+                <span id="avatarInitial">S</span>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+            </div>
+            <div class="call-timer" id="callTimer">00:00</div>
+            <div class="call-sub" id="callSub">Connected</div>
+            <div class="call-quality" id="callQuality">● Excellent</div>
+            <div class="call-controls-big">
+                <!-- Mic -->
+                <button class="btn mic-on" id="callMicBtn">
+                    <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
+                <!-- Speaker -->
+                <button class="btn speaker-off" id="callSpeakerBtn">
+                    <svg viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                </button>
+                <!-- End Call -->
+                <button class="btn end-call" id="callEndBtn">
+                    <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Incoming Call Overlay -->
+        <div id="incomingOverlay" class="incoming-overlay">
+            <div class="avatar" id="incAvatar">S</div>
+            <div class="caller-id" id="incCallerId">Caller</div>
+            <div class="sub">Incoming call...</div>
+            <div class="actions">
+                <button class="accept" id="incAccept">
+                    <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </button>
+                <button class="reject" id="incReject">
+                    <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---- DOM refs ----
+            const statusBadge = document.getElementById('statusBadge');
+            const generateBtn = document.getElementById('generateIdBtn');
+            const callerIdBox = document.getElementById('callerIdBox');
+            const generatedIdDisplay = document.getElementById('generatedIdDisplay');
+            const copyIdBtn = document.getElementById('copyIdBtn');
+            const callerStatus = document.getElementById('callerStatus');
+            const receiverPanel = document.getElementById('receiverPanel');
+            const callerPanel = document.getElementById('callerPanel');
+            const receiverInput = document.getElementById('receiverInput');
+            const connectBtn = document.getElementById('connectBtn');
+            const receiverStatus = document.getElementById('receiverStatus');
+            const callScreen = document.getElementById('callScreen');
+            const avatarInitial = document.getElementById('avatarInitial');
+            const callTimer = document.getElementById('callTimer');
+            const callSub = document.getElementById('callSub');
+            const callQuality = document.getElementById('callQuality');
+            const callMicBtn = document.getElementById('callMicBtn');
+            const callSpeakerBtn = document.getElementById('callSpeakerBtn');
+            const callEndBtn = document.getElementById('callEndBtn');
+            const incomingOverlay = document.getElementById('incomingOverlay');
+            const incAvatar = document.getElementById('incAvatar');
+            const incCallerId = document.getElementById('incCallerId');
+            const incAccept = document.getElementById('incAccept');
+            const incReject = document.getElementById('incReject');
+            const toast = document.getElementById('toast');
+
+            // ---- State ----
+            let peer = null;
+            let myId = null;
+            let currentRoom = null;
+            let localStream = null;
+            let isMicOn = false;
+            let isInCall = false;
+            let isCaller = true;
+            let peerCalls = new Map();
+            let dataConns = new Map();
+            let callStartTime = null;
+            let timerInterval = null;
+            let isSpeakerOn = false;
+            let isIncomingPending = false;
+            let incomingCallId = null;
+
+            // ---- Toast ----
+            function showToast(msg, icon = '📡') {
+                toast.innerHTML = `<span>${icon}</span> ${msg}`;
+                toast.classList.add('show');
+                clearTimeout(toast._timer);
+                toast._timer = setTimeout(() => toast.classList.remove('show'), 3000);
+            }
+
+            // ---- Status ----
+            function setStatus(text, type) {
+                statusBadge.textContent = text;
+                statusBadge.className = 'status-badge';
+                if (type) statusBadge.classList.add(type);
+            }
+
+            // ---- Vibrate (haptic) ----
+            function vibrate(pattern = 10) {
+                try {
+                    if (navigator.vibrate) navigator.vibrate(pattern);
+                } catch (_) {}
+            }
+
+            // ---- Audio ----
+            async function startLocalAudio() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true,
+                            sampleRate: 16000,
+                            sampleSize: 16,
+                            channelCount: 1
+                        }
+                    });
+                    localStream = stream;
+                    isMicOn = true;
+                    updateMicUI();
+                    return stream;
+                } catch (err) {
+                    showToast('Microphone access denied', '❌');
+                    console.error(err);
+                    return null;
+                }
+            }
+
+            // ---- UI Updates ----
+            function updateMicUI() {
+                const icon = isMicOn ? '🎙️' : '🔇';
+                callMicBtn.className = 'btn ' + (isMicOn ? 'mic-on' : 'mic-off');
+                // we keep same SVG, just change class
+                callMicBtn.querySelector('svg').style.opacity = isMicOn ? '1' : '0.4';
+            }
+
+            function updateSpeakerUI() {
+                callSpeakerBtn.className = 'btn ' + (isSpeakerOn ? 'speaker-on' : 'speaker-off');
+            }
+
+            function toggleMic() {
+                if (!localStream) {
+                    startLocalAudio().then(() => { toggleMic(); });
+                    return;
+                }
+                isMicOn = !isMicOn;
+                localStream.getAudioTracks().forEach(t => t.enabled = isMicOn);
+                updateMicUI();
+                vibrate(8);
+                showToast(isMicOn ? 'Microphone ON' : 'Microphone OFF', isMicOn ? '🎙️' : '🔇');
+            }
+
+            function toggleSpeaker() {
+                isSpeakerOn = !isSpeakerOn;
+                // In WebRTC, we can't directly control speaker, but we can use the audio output device
+                // For simplicity, we just update UI and try to use setSinkId on the audio elements later.
+                updateSpeakerUI();
+                vibrate(8);
+                showToast(isSpeakerOn ? 'Speaker ON' : 'Speaker OFF', isSpeakerOn ? '🔊' : '🔈');
+                // Apply to all audio elements
+                document.querySelectorAll('audio').forEach(el => {
+                    if (el.setSinkId) {
+                        el.setSinkId(isSpeakerOn ? 'default' : 'default'); // actually we need 'speaker' vs 'earpiece' but not all browsers support
+                        // we just toggle a class for visual feedback
+                    }
+                });
+            }
+
+            // ---- Call Timer ----
+            function startTimer() {
+                callStartTime = Date.now();
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(() => {
+                    const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+                    const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+                    const secs = String(elapsed % 60).padStart(2, '0');
+                    callTimer.textContent = mins + ':' + secs;
+                }, 1000);
+            }
+
+            function stopTimer() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                callTimer.textContent = '00:00';
+            }
+
+            // ---- Quality Indicator ----
+            let qualityInterval = null;
+
+            function startQualityMonitor() {
+                if (qualityInterval) clearInterval(qualityInterval);
+                qualityInterval = setInterval(() => {
+                    // Simulate quality based on connection state; we can later use getStats
+                    // For now, we just set to good
+                    if (isInCall) {
+                        callQuality.textContent = '● Excellent';
+                        callQuality.className = 'call-quality';
+                    }
+                }, 3000);
+            }
+
+            function stopQualityMonitor() {
+                if (qualityInterval) {
+                    clearInterval(qualityInterval);
+                    qualityInterval = null;
+                }
+            }
+
+            // ---- Hang Up ----
+            function hangUp() {
+                // Close calls
+                for (let [id, call] of peerCalls) { call.close(); }
+                peerCalls.clear();
+                for (let [id, conn] of dataConns) { conn.close(); }
+                dataConns.clear();
+                if (localStream) {
+                    localStream.getTracks().forEach(t => t.stop());
+                    localStream = null;
+                }
+                isMicOn = false;
+                isInCall = false;
+                isIncomingPending = false;
+                incomingOverlay.classList.remove('active');
+                callScreen.classList.remove('active');
+                stopTimer();
+                stopQualityMonitor();
+                currentRoom = null;
+                // Show appropriate panel
+                if (isCaller) {
+                    callerPanel.classList.remove('hidden');
+                    receiverPanel.classList.add('hidden');
+                    callerStatus.textContent = 'Waiting for receiver...';
+                    setStatus('Waiting', 'connecting');
+                } else {
+                    receiverPanel.classList.remove('hidden');
+                    callerPanel.classList.add('hidden');
+                    receiverStatus.textContent = 'Enter ID and connect';
+                    setStatus('Ready', '');
+                }
+                showToast('Call ended', '📞');
+                // Reset avatar
+                avatarInitial.textContent = 'S';
+                // Remove all audio elements
+                document.querySelectorAll('audio').forEach(el => el.remove());
+                // Reset peer if needed
+                if (peer && !peer.destroyed) peer.destroy();
+                peer = null;
+            }
+
+            // ---- Handle Call (incoming/outgoing) ----
+            function handleCall(call, isIncoming = false) {
+                call.on('stream', (remoteStream) => {
+                    const audioEl = document.createElement('audio');
+                    audioEl.srcObject = remoteStream;
+                    audioEl.autoplay = true;
+                    audioEl.controls = false;
+                    audioEl.style.display = 'none';
+                    // Apply speaker setting
+                    if (isSpeakerOn && audioEl.setSinkId) {
+                        audioEl.setSinkId('default');
+                    }
+                    document.body.appendChild(audioEl);
+                    if (!call._audioEl) call._audioEl = audioEl;
+                    // Show call screen
+                    if (!isInCall) {
+                        isInCall = true;
+                        callScreen.classList.add('active');
+                        // hide panels
+                        callerPanel.classList.add('hidden');
+                        receiverPanel.classList.add('hidden');
+                        // set avatar initial
+                        const id = call.peer || '?';
+                        avatarInitial.textContent = id.charAt(0).toUpperCase();
+                        callSub.textContent = 'Connected to ' + id.slice(0, 6);
+                        setStatus('Connected', 'connected');
+                        startTimer();
+                        startQualityMonitor();
+                        showToast('Connected!', '✅');
+                        // Remove incoming overlay if active
+                        incomingOverlay.classList.remove('active');
+                        isIncomingPending = false;
+                    }
+                });
+                call.on('close', () => {
+                    hangUp();
+                });
+                peerCalls.set(call.peer, call);
+            }
+
+            // ---- Caller: Generate ID ----
+            async function generateId() {
+                if (isInCall) hangUp();
+                try {
+                    if (peer && !peer.destroyed) peer.destroy();
+                    peer = new Peer();
+                    await new Promise((resolve, reject) => {
+                        peer.on('open', (id) => {
+                            myId = id;
+                            setStatus('Online', 'online');
+                            generatedIdDisplay.textContent = id;
+                            callerIdBox.classList.remove('hidden');
+                            callerStatus.textContent = '🔗 Share this ID with the receiver.';
+                            setStatus('Waiting', 'connecting');
+                            showToast('Your Call ID: ' + id, '🆔');
+                            resolve();
+                        });
+                        peer.on('error', reject);
+                    });
+
+                    // Listen for incoming data connections (signaling from receiver)
+                    peer.on('connection', (conn) => {
+                        conn.on('data', (data) => {
+                            if (data.type === 'join') {
+                                const receiverId = data.peerId;
+                                // Start audio if not already
+                                if (!localStream) {
+                                    startLocalAudio().then(() => {
+                                        if (localStream) {
+                                            const call = peer.call(receiverId, localStream);
+                                            handleCall(call);
+                                            // update UI
+                                            callerPanel.classList.add('hidden');
+                                            receiverPanel.classList.add('hidden');
+                                            callScreen.classList.add('active');
+                                            avatarInitial.textContent = receiverId.charAt(0).toUpperCase();
+                                            callSub.textContent = 'Connected to ' + receiverId.slice(0, 6);
+                                            setStatus('Connected', 'connected');
+                                            isInCall = true;
+                                            startTimer();
+                                            startQualityMonitor();
+                                            showToast('Receiver connected!', '📞');
+                                        }
+                                    });
+                                } else {
+                                    const call = peer.call(receiverId, localStream);
+                                    handleCall(call);
+                                    callerPanel.classList.add('hidden');
+                                    receiverPanel.classList.add('hidden');
+                                    callScreen.classList.add('active');
+                                    avatarInitial.textContent = receiverId.charAt(0).toUpperCase();
+                                    callSub.textContent = 'Connected to ' + receiverId.slice(0, 6);
+                                    setStatus('Connected', 'connected');
+                                    isInCall = true;
+                                    startTimer();
+                                    startQualityMonitor();
+                                    showToast('Receiver connected!', '📞');
+                                }
+                            }
+                        });
+                        dataConns.set(conn.peer, conn);
+                    });
+
+                    // Also listen for incoming calls (if someone calls us directly)
+                    peer.on('call', (call) => {
+                        // This could be an incoming call from someone who has our ID
+                        // We'll handle it as an incoming call
+                        if (!isInCall) {
+                            // Show incoming overlay
+                            incomingCallId = call.peer;
+                            incAvatar.textContent = call.peer.charAt(0).toUpperCase();
+                            incCallerId.textContent = call.peer.slice(0, 8);
+                            incomingOverlay.classList.add('active');
+                            isIncomingPending = true;
+                            // Store call reference
+                            call._incoming = true;
+                            // Accept will be triggered by user
+                            // We'll store the call for later
+                            peer._pendingCall = call;
+                            vibrate([100, 50, 100]);
+                            showToast('Incoming call...', '📲');
+                        } else {
+                            // If we're already in a call, ignore
+                            call.close();
+                        }
+                    });
+
+                    // Ensure we have audio ready
+                    if (!localStream) await startLocalAudio();
+
+                } catch (err) {
+                    showToast('Failed: ' + err.message, '❌');
+                    console.error(err);
+                }
+            }
+
+            // ---- Incoming Accept/Reject ----
+            incAccept.addEventListener('click', function() {
+                if (peer && peer._pendingCall) {
+                    const call = peer._pendingCall;
+                    if (localStream) {
+                        call.answer(localStream);
+                    } else {
+                        startLocalAudio().then(stream => {
+                            if (stream) call.answer(stream);
+                            else call.close();
+                        });
+                    }
+                    handleCall(call, true);
+                    incomingOverlay.classList.remove('active');
+                    isIncomingPending = false;
+                    // update UI
+                    callerPanel.classList.add('hidden');
+                    receiverPanel.classList.add('hidden');
+                    callScreen.classList.add('active');
+                    avatarInitial.textContent = call.peer.charAt(0).toUpperCase();
+                    callSub.textContent = 'Connected to ' + call.peer.slice(0, 6);
+                    setStatus('Connected', 'connected');
+                    isInCall = true;
+                    startTimer();
+                    startQualityMonitor();
+                    showToast('Call accepted', '✅');
+                    vibrate(20);
+                    peer._pendingCall = null;
+                }
+            });
+
+            incReject.addEventListener('click', function() {
+                if (peer && peer._pendingCall) {
+                    peer._pendingCall.close();
+                    peer._pendingCall = null;
+                }
+                incomingOverlay.classList.remove('active');
+                isIncomingPending = false;
+                showToast('Call rejected', '❌');
+                vibrate(20);
+            });
+
+            // ---- Receiver: Connect ----
+            async function connectToCaller() {
+                const targetId = receiverInput.value.trim();
+                if (!targetId) { showToast('Please enter a Call ID.', '⚠️'); return; }
+                if (isInCall) hangUp();
+                try {
+                    if (peer && !peer.destroyed) peer.destroy();
+                    peer = new Peer();
+                    await new Promise((resolve, reject) => {
+                        peer.on('open', (id) => {
+                            myId = id;
+                            setStatus('Online', 'online');
+                            resolve();
+                        });
+                        peer.on('error', reject);
+                    });
+
+                    // Start audio early
+                    if (!localStream) await startLocalAudio();
+
+                    // Establish data connection to caller
+                    const conn = peer.connect(targetId, { reliable: true });
+                    conn.on('open', () => {
+                        conn.send({ type: 'join', peerId: myId });
+                        // Now the caller will call us; we also need to listen for calls
+                        peer.on('call', (call) => {
+                            if (localStream) call.answer(localStream);
+                            else startLocalAudio().then(stream => { if (stream) call.answer(stream); else call
+                                    .close(); });
+                            handleCall(call);
+                            // update UI
+                            receiverPanel.classList.add('hidden');
+                            callerPanel.classList.add('hidden');
+                            callScreen.classList.add('active');
+                            avatarInitial.textContent = targetId.charAt(0).toUpperCase();
+                            callSub.textContent = 'Connected to ' + targetId.slice(0, 6);
+                            setStatus('Connected', 'connected');
+                            isInCall = true;
+                            startTimer();
+                            startQualityMonitor();
+                            showToast('Connected to caller!', '📞');
+                        });
+                        receiverStatus.textContent = 'Waiting for caller...';
+                        setStatus('Connecting', 'connecting');
+                        showToast('Connecting...', '⏳');
+                    });
+                    conn.on('error', (err) => {
+                        showToast('Connection failed: ' + err.message, '❌');
+                        receiverStatus.textContent = 'Connection failed';
+                        setStatus('Ready', '');
+                    });
+                    dataConns.set(targetId, conn);
+
+                    // Timeout
+                    setTimeout(() => {
+                        if (!isInCall && receiverStatus.textContent !== 'Connection failed') {
+                            receiverStatus.textContent = 'Timeout';
+                            setStatus('Ready', '');
+                            showToast('Connection timeout. Check ID.', '⏱️');
+                            if (conn && conn.open) conn.close();
+                        }
+                    }, 15000);
+
+                } catch (err) {
+                    showToast('Error: ' + err.message, '❌');
+                    receiverStatus.textContent = 'Connection failed';
+                    setStatus('Ready', '');
+                }
+            }
+
+            // ---- Role toggle ----
+            document.querySelectorAll('.role-toggle button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.role-toggle button').forEach(b => b.classList.remove(
+                    'active'));
+                    this.classList.add('active');
+                    isCaller = this.dataset.role === 'caller';
+                    if (isCaller) {
+                        callerPanel.classList.remove('hidden');
+                        receiverPanel.classList.add('hidden');
+                    } else {
+                        callerPanel.classList.add('hidden');
+                        receiverPanel.classList.remove('hidden');
+                    }
+                    if (isInCall) hangUp();
+                    // Ensure call screen hidden
+                    callScreen.classList.remove('active');
+                    incomingOverlay.classList.remove('active');
+                });
+            });
+
+            // ---- Event listeners ----
+            generateBtn.addEventListener('click', generateId);
+            connectBtn.addEventListener('click', connectToCaller);
+            callMicBtn.addEventListener('click', toggleMic);
+            callSpeakerBtn.addEventListener('click', toggleSpeaker);
+            callEndBtn.addEventListener('click', hangUp);
+            copyIdBtn.addEventListener('click', function() {
+                const id = generatedIdDisplay.textContent;
+                if (id && id !== '—') {
+                    navigator.clipboard?.writeText(id).catch(() => {
+                        const ta = document.createElement('textarea');
+                        ta.value = id;
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        ta.remove();
+                    });
+                    showToast('Copied!', '✅');
+                    vibrate(10);
+                }
+            });
+
+            // ---- Anti-copy checks ----
+            if (window.location.protocol === 'file:') {
+                document.body.innerHTML =
+                '<div style="color:red;padding:40px;text-align:center;font-size:20px;">⚠️ Must be served from a web server.</div>';
+                throw new Error('Invalid origin');
+            }
+            if (window.top !== window.self) {
+                document.body.innerHTML =
+                '<div style="color:red;padding:40px;text-align:center;">🚫 Unauthorized embedding.</div>';
+                throw new Error('Iframe');
+            }
+
+            // ---- Initial state ----
+            setStatus('Ready', '');
+            callerPanel.classList.remove('hidden');
+            receiverPanel.classList.add('hidden');
+
+            window.addEventListener('beforeunload', () => { if (isInCall) hangUp(); });
+
+            console.log('Sanco Calls Premium ready.');
+        })();
+    </script>
+</body>
+</html>
